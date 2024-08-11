@@ -84,12 +84,49 @@ return {
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
     dap.listeners.before.event_exited['dapui_config'] = dapui.close
 
-    -- Install golang specific config
-    require('dap-go').setup {
-      delve = {
-        -- On Windows delve must be run attached or it crashes.
-        -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
-        detached = vim.fn.has 'win32' == 0,
+    dap.adapters.lldb = {
+      type = 'executable',
+      command = '/opt/homebrew/opt/llvm/bin/lldb-dap',
+      name = 'lldb',
+    }
+    dap.configurations.cpp = {
+      {
+        name = 'SignatureHelpTest.UseLambdaVariableName',
+        type = 'lldb',
+        request = 'launch',
+        program = '/Users/tibibit/repos/llvm-project/build/tools/clang/tools/extra/clangd/unittests/ClangdTests',
+        cwd = '${workspaceFolder}',
+        stoOnEntry = false,
+        args = { '--gtest_filter=SignatureHelpTest.UseLambdaVariableName' },
+      },
+      {
+        name = 'CompletionTest.NoCrashWithIncompleteLambda',
+        type = 'lldb',
+        request = 'launch',
+        program = '/Users/tibibit/repos/llvm-project/build/tools/clang/tools/extra/clangd/unittests/ClangdTests',
+        cwd = '${workspaceFolder}',
+        stoOnEntry = false,
+        args = { '--gtest_filter=CompletionTest.NoCrashWithIncompleteLambda' },
+      },
+      {
+        name = 'Launch',
+        type = 'lldb',
+        request = 'launch',
+        program = function()
+          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stoOnEntry = false,
+        args = {},
+      },
+      {
+        name = 'ClangdTests',
+        type = 'lldb',
+        request = 'launch',
+        program = '/Users/tibibit/repos/llvm-project/build/tools/clang/tools/extra/clangd/unittests/ClangdTests',
+        cwd = '${workspaceFolder}',
+        stoOnEntry = false,
+        args = {},
       },
     }
   end,

@@ -280,19 +280,26 @@ require('lazy').setup({
       require('which-key').setup()
 
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-        ['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
-        ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
+      require('which-key').add {
+        { '<leader>c', group = '[C]ode' },
+        { '<leader>c_', hidden = true },
+        { '<leader>d', group = '[D]ocument' },
+        { '<leader>d_', hidden = true },
+        { '<leader>h', group = 'Git [H]unk' },
+        { '<leader>h_', hidden = true },
+        { '<leader>r', group = '[R]ename' },
+        { '<leader>r_', hidden = true },
+        { '<leader>s', group = '[S]earch' },
+        { '<leader>s_', hidden = true },
+        { '<leader>t', group = '[T]oggle' },
+        { '<leader>t_', hidden = true },
+        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>w_', hidden = true },
       }
       -- visual mode
-      require('which-key').register({
-        ['<leader>h'] = { 'Git [H]unk' },
-      }, { mode = 'v' })
+      require('which-key').add {
+        { '<leader>h', desc = 'Git [H]unk', mode = 'v' },
+      }
     end,
   },
 
@@ -470,7 +477,7 @@ require('lazy').setup({
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
-          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+          map('gd', require('telescope.builtin').lsp_definitions, '[g]oto [d]efinition')
 
           -- Find references for the word under your cursor.
           map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
@@ -482,7 +489,7 @@ require('lazy').setup({
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+          map('gD', require('telescope.builtin').lsp_type_definitions, '[g]oto type [D]efinition')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
@@ -506,7 +513,7 @@ require('lazy').setup({
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
-          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          -- map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           map('<leader>cs', vim.lsp.buf.signature_help, '[S]ignature Help')
 
@@ -978,12 +985,12 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   --
   -- {
   --   'ggandor/leap.nvim',
@@ -1016,6 +1023,20 @@ require('lazy').setup({
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
   -- { import = 'custom.plugins' },
   {
+    'rcarriga/nvim-notify',
+    config = function()
+      local notify = require 'notify'
+      -- local map = function(keys, func, desc)
+      --   vim.keymap.set('n', keys, func, { desc = desc })
+      -- end
+      -- map('<leader>nd', notify.dismiss { pending = true, silent = false }, '[d]ismiss [n]otifications')
+      -- vim.keymap.set('n', '<leader>nd', notify.dismiss { pending = true, silent = false }, '[d]ismiss [n]otifications')
+      vim.keymap.set('n', '<leader>nd', function()
+        require('notify').dismiss { pending = false, silent = true }
+      end, { desc = '[n]otifications [d]ismiss' })
+    end,
+  },
+  {
     'kawre/leetcode.nvim',
     build = ':TSUpdate html',
     dependencies = {
@@ -1031,55 +1052,6 @@ require('lazy').setup({
     opts = {
       -- configuration goes here
     },
-  },
-  {
-    'mfussenegger/nvim-dap',
-    config = function()
-      local dap = require 'dap'
-      dap.adapters.lldb = {
-        type = 'executable',
-        command = '/opt/homebrew/opt/llvm/bin/lldb-dap',
-        name = 'lldb',
-      }
-      dap.configurations.cpp = {
-        {
-          name = 'SignatureHelpTests',
-          type = 'lldb',
-          request = 'launch',
-          program = '/Users/tibibit/repos/llvm-project/build/tools/clang/tools/extra/clangd/unittests/ClangdTests',
-          cwd = '${workspaceFolder}',
-          stoOnEntry = false,
-          args = { '--gtest_filter=*SignatureHelp*' },
-        },
-        {
-          name = 'Launch',
-          type = 'lldb',
-          request = 'launch',
-          program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-          end,
-          cwd = '${workspaceFolder}',
-          stoOnEntry = false,
-          args = {},
-        },
-        {
-          name = 'ClangdTests',
-          type = 'lldb',
-          request = 'launch',
-          program = '/Users/tibibit/repos/llvm-project/build/tools/clang/tools/extra/clangd/unittests/ClangdTests',
-          cwd = '${workspaceFolder}',
-          stoOnEntry = false,
-          args = {},
-        },
-      }
-    end,
-  },
-  {
-    'rcarriga/nvim-dap-ui',
-    dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
-    config = function()
-      require('dapui').setup()
-    end,
   },
   {
     'nmac427/guess-indent.nvim',
@@ -1117,3 +1089,7 @@ vim.diagnostic.config { virtual_text = false }
 -- vim.opt.softtabstop = 2
 -- vim.opt.shiftwidth = 2
 vim.opt.expandtab = true -- use spaces instead of tabs
+vim.opt.shiftwidth = 4
+
+-- mojo lsp not included yet in Mason
+require('lspconfig').mojo.setup {}
